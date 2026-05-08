@@ -2,26 +2,271 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --overlay: #16161f;
+    --violet: #6c63ff;
+    --violet-deep: #4a3fd4;
+    --cyan: #00c2ff;
+    --text: #ffffff;
+    --text-muted: #8888a0;
+    --text-dim: #55556e;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --destructive: #d04a4a;
+    --green-live: #00d88b;
+  }
+
+  .dark {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --overlay: #16161f;
+    --violet: #6c63ff;
+    --violet-deep: #4a3fd4;
+    --cyan: #00c2ff;
+    --text: #ffffff;
+    --text-muted: #8888a0;
+    --text-dim: #55556e;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --destructive: #d04a4a;
+    --green-live: #00d88b;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background-color: var(--bg);
+    color: var(--text);
+  }
+
+  /* Background con 3 gradients radiales pronunciados — son LA atmósfera del dashboard.
+     Si se ven muy fuerte: bajar opacidades de 0.18/0.10/0.05 en pasos de 0.02.
+     Si no se ven: subir.
+     `background-attachment: fixed` para que no scrolleen. */
+  body {
+    background-color: #0a0a0f;
+    background-image:
+      radial-gradient(
+        ellipse 800px 600px at 10% 0%,
+        rgba(108, 99, 255, 0.18),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 700px 500px at 90% 100%,
+        rgba(0, 194, 255, 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 500px 400px at 50% 50%,
+        rgba(108, 99, 255, 0.05),
+        transparent 70%
+      );
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-anton), sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.005em;
+    line-height: 1.05;
+  }
+
+  h3 {
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp,
+  .font-mono {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  }
+
+  ::selection {
+    background-color: var(--violet);
+    color: var(--text);
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* ─── MetricCard "Fluxx LLC" style ────────────────────────────────────────
+     Border completo sutil + gradient interno + glow violeta abajo blureado.
+     El glow es un div absolute con z-index -1 dentro de la card. */
+  .metric-card {
+    position: relative;
+    padding: 2rem; /* p-8 */
+    min-height: 160px;
+    border-radius: 8px;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.01)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow: hidden; /* contiene el glow */
+    isolation: isolate; /* nuevo stacking context para que -1 quede dentro */
+  }
+
+  .metric-card-glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      ellipse at 50% 100%,
+      rgba(108, 99, 255, 0.25),
+      transparent 70%
+    );
+    filter: blur(20px);
+    opacity: 0.6;
+    transition: opacity 250ms ease-out;
+    pointer-events: none;
+  }
+
+  .metric-card:hover .metric-card-glow {
+    opacity: 1;
+  }
+
+  .metric-card-value {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  /* ─── Panel card (chart, recent conversations) ──────────────────────────
+     Misma base visual que metric-card pero SIN glow — paneles que muestran
+     contenido (chart, lista, etc.) en vez de un valor único. */
+  .panel-card {
+    position: relative;
+    border-radius: 8px;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.01)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow: hidden;
+  }
+
+  /* ─── StatsRow bars ──────────────────────────────────────────────────────
+     Track suave, fill con gradient violet→cyan, pill rounded, animated. */
+  .stats-bar-track {
+    height: 8px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .stats-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet) 0%, var(--cyan) 100%);
+    border-radius: 999px;
+    transition: width 800ms ease-out;
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .font-mono-data {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  .section-divider {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(to right, var(--violet) 0%, transparent 100%);
+  }
+
+  .animate-pulse-live {
+    animation: pulse-live 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-halo {
+    animation: pulse-halo 2s ease-out infinite;
+    transform-origin: center;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+  }
+}
+
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes pulse-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-live,
+  .animate-pulse-halo,
+  .animate-pulse,
+  .animate-spin {
+    animation: none !important;
+  }
+
+  .stats-bar-fill {
+    transition: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }
