@@ -5,6 +5,7 @@
 export const ALLOWED_EMAILS: readonly string[] = [
   'torresfacundo.lt@gmail.com',
   'peecoulter7@gmail.com',
+  'fyorlano@hidroplat.com',
 ];
 
 export function isAllowed(email: string | null | undefined): boolean {
