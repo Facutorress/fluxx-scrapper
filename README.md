@@ -248,3 +248,4 @@ node .next/standalone/server.js
 - Vista de comparación entre estrategias (Etapa 3, no implementado).
 - Analytics, telemetry, tracking — nada.
 - i18n — solo español.
+
